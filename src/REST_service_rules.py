@@ -1,4 +1,4 @@
-import threading
+import json
 from bottle import route, run, request, response
 import sqlite3
 import requests
@@ -20,19 +20,9 @@ with conn:
 @route('/add_rule')
 def index():
     callback_url = request.headers.get('Cpee-Callback')
-    strings_to_match = request.query.message
+    strings_to_match = request.query.strings_to_match
     # Create new Rule object
     new_rule = Rule(strings_to_match, callback_url)
-    # Start a new thread that will execute handle_new_rule
-    threading.Thread(target=handle_new_rule, args=(
-        strings_to_match, callback_url)).start()
-    # Send initial response, indicating that the rule was received
-    response.set_header('Cpee-Callback', 'true')
-    return 'initial response'
-
-
-# Handle new rule
-def handle_new_rule(strings_to_match, callback_url):
     # Check, whether rule is already matched by a order
     cocktails = strings_to_match.split(',')
     for cocktail in cocktails:
@@ -41,11 +31,8 @@ def handle_new_rule(strings_to_match, callback_url):
             c.execute('SELECT * FROM orders WHERE message LIKE :cocktail',
                       {'cocktail': '%' + cocktail + '%'})
             matching_order = c.fetchone()
-        # If order is found, send a request to the callback and delete the order from the database
+        # If order is found, delete the order from the database and return info about the matching order
         if matching_order:
-            # Send a request to the callback ibcluding the user_id, when the order was placed and the cocktail
-            requests.put(callback_url, json={
-                         'user_id': matching_order[1], 'cocktail': cocktail, 'timestamp': matching_order[2]})
             # Delete the order from the database
             with conn:
                 c.execute('''DELETE FROM orders
@@ -53,13 +40,15 @@ def handle_new_rule(strings_to_match, callback_url):
                   AND user_id = :user_id
                   AND timestamp = :timestamp
                   LIMIT 1''', {'message': matching_order[0], 'user_id': matching_order[1], 'timestamp': matching_order[2]})
-            requests.put(callback_url, 'Order matched: ' + cocktail)
-    # If no order is found, save the rule in the database
+            # Return info about the matching order
+            return json.dumps({'user_id': matching_order[1], 'cocktail': cocktail, 'timestamp': matching_order[2]})
+    # If no order is found, save the rule in the database and wait for it to be fulfilled
     with conn:
         c.execute('INSERT INTO rules VALUES (:strings_to_match, :callback)', {
                   'strings_to_match': strings_to_match, 'callback': callback_url})
-    requests.put(
-        callback_url, 'No matching order found, rule saved in rule queue')
+    # Send a response to the CPEE indicating that it should wait for the rule to be fulfilled
+    response.set_header('Cpee-Callback', 'true')
+    return 'No matching order found, rule saved in rule queue'
 
 
 run(host='::1', port=49125)
