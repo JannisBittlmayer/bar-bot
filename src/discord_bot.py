@@ -73,12 +73,6 @@ async def on_message(message):
                          'message': message_content, 'user_id': user_id, 'timestamp': current_time})
         await message.channel.send(r.text)
 
-# Send a direct message to a user
-
-
-async def send_dm(user_id: str, message: str):
-    user = await client.fetch_user(int(user_id))
-    await user.send(message)
 
 # Run bot
 client.run(token)
