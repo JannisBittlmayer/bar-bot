@@ -1,6 +1,6 @@
 import requests
 import json
-from bottle import route, run, request
+from bottle import post, run, request
 
 # Load config from config.json
 with open('src/config.json') as config_file:
@@ -8,10 +8,11 @@ with open('src/config.json') as config_file:
     token = config['token']
 
 
-@route('/message')
+@post('/message')
 def message():
-    user_id = request.query.user_id
-    message = request.query.message
+    data = request.forms
+    user_id = data['user_id']
+    message = data['message']
     send_discord_message(user_id, message)
     return 'Message sent'
 
