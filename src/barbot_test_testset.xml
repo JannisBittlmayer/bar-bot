@@ -1,0 +1,137 @@
+<testset xmlns="http://cpee.org/ns/properties/2.0">
+  <executionhandler>ruby</executionhandler>
+  <dataelements>
+    <user_id>209694018710274048</user_id>
+    <cocktail>Mojito, Bloody Mary</cocktail>
+    <timestamp>1710702536</timestamp>
+  </dataelements>
+  <endpoints>
+    <user>https-post://cpee.org/services/timeout-user.php</user>
+    <auto>https-post://cpee.org/services/timeout-auto.php</auto>
+    <subprocess>https-post://cpee.org/flow/start/url/</subprocess>
+    <timeout>https://cpee.org/services/timeout.php</timeout>
+    <send>https-post://cpee.org/ing/correlators/message/send/</send>
+    <receive>https-get://cpee.org/ing/correlators/message/receive/</receive>
+    <order>https://lehre.bpm.in.tum.de/ports/49124/order/</order>
+    <add_rule>https://lehre.bpm.in.tum.de/ports/49125/add_rule/</add_rule>
+    <message>https://lehre.bpm.in.tum.de/ports/49126/message</message>
+  </endpoints>
+  <attributes>
+    <info>Testing endpoints</info>
+    <modeltype>CPEE</modeltype>
+    <theme>extended</theme>
+  </attributes>
+  <description>
+    <description xmlns="http://cpee.org/ns/description/1.0">
+      <loop mode="pre_test" condition="true">
+        <_probability>
+          <_probability_min/>
+          <_probability_max/>
+          <_probability_avg/>
+        </_probability>
+        <call id="a4" endpoint="add_rule">
+          <parameters>
+            <label>Add a rule including the availability of a Mojito and a Bloody Mary</label>
+            <method>:get</method>
+            <arguments>
+              <strings_to_match>Mojito, Bloody Mary</strings_to_match>
+            </arguments>
+          </parameters>
+          <code>
+            <prepare/>
+            <finalize output="result">require 'json'
+resultJson = JSON.parse(result)
+data.user_id = resultJson["user_id"]
+data.cocktail = resultJson["cocktail"]
+data.timestamp = resultJson["timestamp"]</finalize>
+            <update output="result"/>
+            <rescue output="result"/>
+          </code>
+          <annotations>
+            <_generic/>
+            <_timing>
+              <_timing_weight/>
+              <_timing_avg/>
+              <explanations/>
+            </_timing>
+            <_shifting>
+              <_shifting_type>Duration</_shifting_type>
+            </_shifting>
+            <_context_data_analysis>
+              <probes/>
+              <ips/>
+            </_context_data_analysis>
+            <report>
+              <url/>
+            </report>
+            <_notes>
+              <_notes_general/>
+            </_notes>
+          </annotations>
+          <documentation>
+            <input/>
+            <output/>
+            <implementation>
+              <description/>
+            </implementation>
+            <code>
+              <description/>
+            </code>
+          </documentation>
+        </call>
+        <call id="a1" endpoint="message">
+          <parameters>
+            <label>Wait 5 seconds, then send update message to user</label>
+            <method>:post</method>
+            <arguments>
+              <user_id>#{data.user_id}</user_id>
+              <message>Your drink is 50% done!</message>
+            </arguments>
+          </parameters>
+          <code>
+            <prepare>sleep(5)</prepare>
+            <finalize output="result"/>
+            <update output="result"/>
+            <rescue output="result"/>
+          </code>
+          <annotations>
+            <_generic/>
+            <_timing>
+              <_timing_weight/>
+              <_timing_avg/>
+              <explanations/>
+            </_timing>
+            <_shifting>
+              <_shifting_type>Duration</_shifting_type>
+            </_shifting>
+            <_context_data_analysis>
+              <probes/>
+              <ips/>
+            </_context_data_analysis>
+            <report>
+              <url/>
+            </report>
+            <_notes>
+              <_notes_general/>
+            </_notes>
+          </annotations>
+          <documentation>
+            <input/>
+            <output/>
+            <implementation>
+              <description/>
+            </implementation>
+            <code>
+              <description/>
+            </code>
+          </documentation>
+        </call>
+      </loop>
+    </description>
+  </description>
+  <transformation>
+    <description type="copy"/>
+    <dataelements type="none"/>
+    <endpoints type="none"/>
+  </transformation>
+</testset>
