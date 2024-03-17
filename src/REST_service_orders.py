@@ -47,7 +47,7 @@ def index():
                 # Delete the rule from the database
                 c.execute('DELETE FROM rules WHERE strings_to_match = :strings AND callback = :callback', {
                           'strings': matching_rule[0], 'callback': matching_rule[1]})
-                return 'Rule matched: ' + word
+                return 'Rule matched: Found ' + word + ' in ' + matching_rule[0]
         # If no rule is found, save the order in the database
         c.execute('INSERT INTO orders VALUES (:message, :user_id, :timestamp)', {
                   'message': message, 'user_id': user_id, 'timestamp': timestamp})

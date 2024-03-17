@@ -1,4 +1,5 @@
-from bottle import route, run, request
+import threading
+from bottle import route, run, request, response
 import sqlite3
 import requests
 from rule import Rule
@@ -22,6 +23,16 @@ def index():
     strings_to_match = request.query.message
     # Create new Rule object
     new_rule = Rule(strings_to_match, callback_url)
+    # Start a new thread that will execute handle_new_rule
+    threading.Thread(target=handle_new_rule, args=(
+        strings_to_match, callback_url)).start()
+    # Send initial response, indicating that the rule was received
+    response.set_header('Cpee-Callback', 'true')
+    return 'initial response'
+
+
+# Handle new rule
+def handle_new_rule(strings_to_match, callback_url):
     # Check, whether rule is already matched by a order
     cocktails = strings_to_match.split(',')
     for cocktail in cocktails:
@@ -38,16 +49,17 @@ def index():
             # Delete the order from the database
             with conn:
                 c.execute('''DELETE FROM orders
-           WHERE message = :message
-           AND user_id = :user_id
-           AND timestamp = :timestamp
-           LIMIT 1''', {'message': matching_order[0], 'user_id': matching_order[1], 'timestamp': matching_order[2]})
-            return 'Order matched: ' + cocktail
+                  WHERE message = :message
+                  AND user_id = :user_id
+                  AND timestamp = :timestamp
+                  LIMIT 1''', {'message': matching_order[0], 'user_id': matching_order[1], 'timestamp': matching_order[2]})
+            requests.put(callback_url, 'Order matched: ' + cocktail)
     # If no order is found, save the rule in the database
     with conn:
         c.execute('INSERT INTO rules VALUES (:strings_to_match, :callback)', {
                   'strings_to_match': strings_to_match, 'callback': callback_url})
-    return 'No matching order found, rule saved in rule queue'
+    requests.put(
+        callback_url, 'No matching order found, rule saved in rule queue')
 
 
 run(host='::1', port=49125)
