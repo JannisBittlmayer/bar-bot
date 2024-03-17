@@ -1,3 +1,4 @@
+import json
 from bottle import route, run, request
 import sqlite3
 import requests
@@ -43,7 +44,8 @@ def index():
             if matching_rule:
                 # Send a request to the matching rule's callback
                 callback_url = matching_rule[1]
-                requests.put(callback_url, word)
+                requests.put(callback_url, json.dumps(
+                    {'user_id': user_id, 'cocktail': word, 'timestamp': timestamp}))
                 # Delete the rule from the database
                 c.execute('DELETE FROM rules WHERE strings_to_match = :strings AND callback = :callback', {
                           'strings': matching_rule[0], 'callback': matching_rule[1]})
