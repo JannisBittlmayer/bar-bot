@@ -50,8 +50,8 @@ def find_matching_rule(db_cursor, message):
         if len(word) < 4:
             continue
         # Check if a matching rule can be found
-        db_cursor.execute('SELECT * FROM rules WHERE strings_to_match LIKE :strings',
-                          {'strings': '%' + word + '%'})
+        db_cursor.execute('SELECT * FROM rules WHERE strings_to_match LIKE :word',
+                          {'word': '%' + word + '%'})
         matching_rule = db_cursor.fetchone()
         if matching_rule:
             return word, matching_rule
