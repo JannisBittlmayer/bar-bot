@@ -61,11 +61,11 @@ async def on_message(message):
     # Ignore messages from the bot itself
     if message.author == client.user:
         return
-
     # Ignore capitalization of message content
     message_content = message.content.lower()
-
-    if 'order' in message_content and client.user.mentioned_in(message):
+    # Act upon message if it contains a keyword and the bot is mentioned
+    keywords = ['order', 'bestell']
+    if any(keyword in message_content for keyword in keywords) and client.user.mentioned_in(message):
         current_time = int(time.time())
         user_id = message.author.id
         # Send a request to the REST order service
