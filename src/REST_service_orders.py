@@ -4,8 +4,8 @@ import sqlite3
 import requests
 from order import Order
 
-# Create tables if not present yet
 
+# Create tables if not present yet
 
 def create_tables():
     with sqlite3.connect('database.db') as conn:
@@ -18,8 +18,8 @@ def create_tables():
 
 create_tables()
 
-# Take order
 
+# Take order
 
 @route('/order')
 def index():
@@ -46,8 +46,8 @@ def index():
                 return '''Your order cannot be yet fulfilled, we saved it and will 
                 contact you as soon as it is fulfilled.'''
 
-# Find matching rule in database
 
+# Find matching rule in database
 
 def find_matching_rule(db_cursor, message):
     words = message.split()
@@ -63,14 +63,15 @@ def find_matching_rule(db_cursor, message):
             return word, matching_rule
     return None, None
 
-# Tell CPEE about matched rule and delete rule from database
 
+# Tell CPEE about matched rule and delete rule from database
 
 def send_matched_rule(matching_rule, user_id, timestamp):
     callback_url = matching_rule[1]
     # Tell CPEE about matched rule
+    headers = {'Content-Type': 'application/json'}
     response = requests.put(callback_url, json.dumps(
-        {'user_id': user_id, 'cocktail': matching_rule[0], 'timestamp': timestamp}))
+        {'user_id': user_id, 'cocktail': matching_rule[0], 'timestamp': timestamp}), headers=headers)
     return response.status_code == 200
 
 
@@ -79,8 +80,8 @@ def delete_rule(db_cursor, matching_rule):
     db_cursor.execute('DELETE FROM rules WHERE strings_to_match = :strings AND callback = :callback', {
         'strings': matching_rule[0], 'callback': matching_rule[1]})
 
-# Save order to database
 
+# Save order to database
 
 def save_order(db_cursor, message, user_id, timestamp):
     db_cursor.execute('INSERT INTO orders VALUES (:message, :user_id, :timestamp)', {
