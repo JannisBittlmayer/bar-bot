@@ -43,8 +43,7 @@ def index():
             # If no matching rule is found, save the order in the order queue
             else:
                 save_order(db_cursor, message, user_id, timestamp)
-                return '''Your order cannot be yet fulfilled, we saved it and will 
-                contact you as soon as it is fulfilled.'''
+                return 'Your order cannot be yet fulfilled, we saved it and will contact you as soon as it is fulfilled.'
 
 
 # Find matching rule in database
