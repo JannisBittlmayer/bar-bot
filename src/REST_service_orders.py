@@ -29,16 +29,22 @@ def index():
         user_id = request.query.user_id
         timestamp = request.query.timestamp
         new_order = Order(message, user_id, timestamp)
-        # Check, whether order is already matched by a rule
-        matched_word, matching_rule = find_matching_rule(db_cursor, message)
-        # If rule is found, callback CPEE, delete rule and return info to user
-        if matching_rule:
-            send_request_and_delete_rule(
-                db_cursor, matching_rule, user_id, timestamp)
-            return 'Rule matched: Found \"' + matched_word + '\" in rule ' + matching_rule[0]
-        else:
-            save_order(db_cursor, message, user_id, timestamp)
-    return 'No matching rule found, order saved in order queue'
+        # Repeat until a matching rule is found or the order is saved
+        while True:
+            # Check if a matching rule can be found
+            matched_word, matching_rule = find_matching_rule(
+                db_cursor, message)
+            # If a matching rule is found, delete the rule
+            if matching_rule:
+                delete_rule(db_cursor, matching_rule)
+                # Tell CPEE about matched rule. If successful, return info to user. If not, try again
+                if send_matched_rule(matching_rule, user_id, timestamp):
+                    return f'Rule matched: Found "{matched_word}" in rule {matching_rule[0]}'
+            # If no matching rule is found, save the order in the order queue
+            else:
+                save_order(db_cursor, message, user_id, timestamp)
+                return '''Your order cannot be yet fulfilled, we saved it and will 
+                contact you as soon as it is fulfilled.'''
 
 # Find matching rule in database
 
@@ -60,11 +66,15 @@ def find_matching_rule(db_cursor, message):
 # Tell CPEE about matched rule and delete rule from database
 
 
-def send_request_and_delete_rule(db_cursor, matching_rule, user_id, timestamp):
+def send_matched_rule(matching_rule, user_id, timestamp):
     callback_url = matching_rule[1]
     # Tell CPEE about matched rule
-    requests.put(callback_url, json.dumps(
+    response = requests.put(callback_url, json.dumps(
         {'user_id': user_id, 'cocktail': matching_rule[0], 'timestamp': timestamp}))
+    return response.status_code == 200
+
+
+def delete_rule(db_cursor, matching_rule):
     # Delete matched rule from database
     db_cursor.execute('DELETE FROM rules WHERE strings_to_match = :strings AND callback = :callback', {
         'strings': matching_rule[0], 'callback': matching_rule[1]})
