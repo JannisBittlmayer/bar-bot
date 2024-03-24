@@ -1,5 +1,6 @@
 import json
 from bottle import route, run, request
+from fuzzywuzzy import fuzz
 import sqlite3
 import requests
 from order import Order
@@ -39,7 +40,7 @@ def index():
                 delete_rule(db_cursor, matching_rule)
                 # Tell CPEE about matched rule. If successful, return info to user. If not, try again
                 if send_matched_rule(matching_rule, user_id, timestamp):
-                    return f'Rule matched: Found "{matched_word}" in rule {matching_rule[0]}'
+                    return f'Rule matched: Found {matched_word} in rule {matching_rule[0]}'
             # If no matching rule is found, save the order in the order queue
             else:
                 save_order(db_cursor, message, user_id, timestamp)
@@ -60,6 +61,17 @@ def find_matching_rule(db_cursor, message):
         matching_rule = db_cursor.fetchone()
         if matching_rule:
             return word, matching_rule
+    # If no matching rule can be found, get all rules and use fuzzy matching to find highest match
+    db_cursor.execute('SELECT * FROM rules')
+    rules = db_cursor.fetchall()
+    # Iterate over all rules
+    for rule in rules:
+        cocktails = rule[0].split(',')
+        # Search for all cocktails (of the rule) in the message
+        for cocktail in cocktails:
+            if fuzz.partial_ratio(message, cocktail) >= 60:
+                return 'a partially matching cocktail', rule
+    # If no matching rule can be found, return None
     return None, None
 
 

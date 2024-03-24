@@ -1,5 +1,6 @@
 import json
 from bottle import route, run, request, response
+from fuzzywuzzy import fuzz
 import sqlite3
 from rule import Rule
 
@@ -45,6 +46,15 @@ def find_matching_order(db_cursor, strings_to_match):
         matching_order = db_cursor.fetchone()
         if matching_order:
             return matching_order
+    # If no matching rule can be found, get all orders and use fuzzy matching to find highest match
+    db_cursor.execute('SELECT * FROM orders')
+    orders = db_cursor.fetchall()
+    # Iterate over all orders
+    for order in orders:
+        # Iterate over all cocktails and search for them in existing orders
+        for cocktail in cocktails:
+            if fuzz.partial_ratio(order[0], cocktail) >= 60:
+                return order
     return None
 
 
