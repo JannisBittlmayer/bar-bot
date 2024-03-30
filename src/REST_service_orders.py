@@ -66,11 +66,9 @@ def find_matching_rule(db_cursor, message):
     rules = db_cursor.fetchall()
     # Iterate over all rules
     for rule in rules:
-        cocktails = rule[0].split(',')
-        # Search for all cocktails (of the rule) in the message
-        for cocktail in cocktails:
-            if fuzz.partial_ratio(message, cocktail) >= 60:
-                return 'a partially matching cocktail', rule
+        # Search for cocktail of the rule in the message
+        if fuzz.partial_ratio(message, rule[0]) >= 60:
+            return 'a partially matching cocktail', rule
     # If no matching rule can be found, return None
     return None, None
 
@@ -88,8 +86,8 @@ def send_matched_rule(matching_rule, user_id, timestamp):
 
 def delete_rule(db_cursor, matching_rule):
     # Delete matched rule from database
-    db_cursor.execute('DELETE FROM rules WHERE strings_to_match = :strings AND callback = :callback', {
-        'strings': matching_rule[0], 'callback': matching_rule[1]})
+    db_cursor.execute('DELETE FROM rules WHERE callback = :callback', {
+                      'callback': matching_rule[1]})
 
 
 # Save order to database
