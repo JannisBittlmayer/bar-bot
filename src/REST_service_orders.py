@@ -50,6 +50,7 @@ def index():
 # Find matching rule in database
 
 def find_matching_rule(db_cursor, message):
+    # Search for longer message words in rules
     words = message.split()
     for word in words:
         # Ignore words with less than 4 characters like 'a', 'the', 'and'
