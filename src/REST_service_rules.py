@@ -4,18 +4,22 @@ from fuzzywuzzy import fuzz
 import sqlite3
 from rule import Rule
 
-conn = sqlite3.connect('database.db')
-c = conn.cursor()
 
 # Create tables if not present yet
-with conn:
-    c.execute(
-        '''CREATE TABLE IF NOT EXISTS orders (message text, user_id text, timestamp integer)''')
-    c.execute(
-        '''CREATE TABLE IF NOT EXISTS rules (strings_to_match text, callback text)''')
+
+def create_tables():
+    with sqlite3.connect('database.db') as conn:
+        c = conn.cursor()
+        c.execute(
+            '''CREATE TABLE IF NOT EXISTS orders (message text, user_id text, timestamp integer)''')
+        c.execute(
+            '''CREATE TABLE IF NOT EXISTS rules (strings_to_match text, callback text)''')
+
+
+create_tables()
+
 
 # Take new rule
-
 
 @route('/add_rule')
 def index():
