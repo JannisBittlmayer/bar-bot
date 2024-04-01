@@ -1,7 +1,7 @@
 import datetime
 import json
 from typing import Iterable
-from bottle import route, run, request
+from bottle import post, run, request
 from fuzzywuzzy import fuzz
 import sqlite3
 import requests
@@ -24,13 +24,14 @@ create_tables()
 
 # Take order
 
-@route('/order')
+@post('/order')
 def index():
     with sqlite3.connect('database.db') as conn:
         db_cursor = conn.cursor()
-        message = request.query.message
-        user_id = request.query.user_id
-        timestamp = int(request.query.timestamp)
+        data = request.forms
+        message = data['message']
+        user_id = data['user_id']
+        timestamp = int(data['timestamp'])
         new_order = Order(message, user_id, timestamp)
         # Repeat until a matching rule is found or the order is saved
         while True:

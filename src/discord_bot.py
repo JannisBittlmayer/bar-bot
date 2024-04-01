@@ -69,8 +69,9 @@ async def on_message(message):
         current_time = int(time.time())
         user_id = message.author.id
         # Send a request to the REST order service
-        r = requests.get(url=rest_order_url, params={
-                         'message': message_content, 'user_id': user_id, 'timestamp': current_time})
+        payload = {'message': message_content,
+                   'user_id': user_id, 'timestamp': current_time}
+        r = requests.post(url=rest_order_url, data=payload)
         await message.channel.send(r.text)
 
 
