@@ -2,8 +2,8 @@
   <executionhandler>ruby</executionhandler>
   <dataelements>
     <user_id/>
-    <cocktail>Mojito</cocktail>
-    <timestamp>1711968414</timestamp>
+    <cocktail/>
+    <timestamp/>
   </dataelements>
   <endpoints>
     <user>https-post://cpee.org/services/timeout-user.php</user>
@@ -35,6 +35,7 @@
             <method>:get</method>
             <arguments>
               <strings_to_match>Mojito, Bloody Mary</strings_to_match>
+              <available_hours>14-16</available_hours>
             </arguments>
           </parameters>
           <code>
