@@ -35,7 +35,6 @@
             <method>:get</method>
             <arguments>
               <strings_to_match>Mojito, Bloody Mary</strings_to_match>
-              <available_hours>14-16</available_hours>
             </arguments>
           </parameters>
           <code>

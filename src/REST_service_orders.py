@@ -16,7 +16,7 @@ def create_tables():
         c.execute(
             '''CREATE TABLE IF NOT EXISTS orders (message text, user_id text, timestamp integer)''')
         c.execute(
-            '''CREATE TABLE IF NOT EXISTS rules (strings_to_match text, callback text, available_hours text)''')
+            '''CREATE TABLE IF NOT EXISTS rules (strings_to_match text, callback text)''')
 
 
 create_tables()
@@ -37,7 +37,7 @@ def index():
         while True:
             # Check if a matching rule can be found
             matched_word, matching_rule = find_matching_rule(
-                db_cursor, message, timestamp)
+                db_cursor, message)
             # If a matching rule is found, delete the rule
             if matching_rule:
                 delete_rule(db_cursor, matching_rule)
@@ -52,44 +52,29 @@ def index():
 
 # Find matching rule in database
 
-def find_matching_rule(db_cursor: sqlite3.Cursor, message: str, timestamp: int):
+def find_matching_rule(db_cursor: sqlite3.Cursor, message: str):
     # Search for longer message words in rules
     words = message.split()
     for word in words:
         # Ignore words with less than 4 characters like 'a', 'the', 'and'
         if len(word) < 4:
             continue
-        # Check if matching rules can be found and if one of them matches time-wise
+        # Check if matching rule can be found
         db_cursor.execute('SELECT * FROM rules WHERE strings_to_match LIKE :word',
                           {'word': '%' + word + '%'})
-        matching_rules = db_cursor.fetchall()
-        if matching_rules:
-            matching_rule = time_based_matching_rule(matching_rules, timestamp)
-            if matching_rule:
-                return word, matching_rule
+        matching_rule = db_cursor.fetchone()
+        if matching_rule:
+            return word, matching_rule
     # If no matching rule can be found, get all rules and use fuzzy matching to find highest match
     db_cursor.execute('SELECT * FROM rules')
     rules = db_cursor.fetchall()
     # Iterate over all rules
     for rule in rules:
         # Search for cocktail of the rule in the message
-        if fuzz.partial_ratio(message, rule[0]) >= 60 and time_based_matching_rule([rule], timestamp):
+        if fuzz.partial_ratio(message, rule[0]) >= 60:
             return 'a partially matching cocktail', rule
     # If no matching rule can be found, return None
     return None, None
-
-
-# Check, if order was made within the time of any matched rule
-
-def time_based_matching_rule(matched_rules: Iterable, timestamp: int):
-    for rule in matched_rules:
-        available_from = int(rule[2].split('-')[0])
-        available_to = int(rule[2].split('-')[1])
-        timestamp_date_object = datetime.datetime.fromtimestamp(timestamp)
-        print(timestamp_date_object.hour)
-        if available_from <= timestamp_date_object.hour <= available_to:
-            return rule
-    return None
 
 
 # Tell CPEE about matched rule and delete rule from database
