@@ -1,6 +1,4 @@
-import datetime
 import json
-from typing import Iterable
 from bottle import route, run, request, response
 from fuzzywuzzy import fuzz
 import sqlite3

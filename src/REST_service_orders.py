@@ -1,10 +1,8 @@
-import datetime
 import json
-from typing import Iterable
 from bottle import post, run, request
 from fuzzywuzzy import fuzz
 import sqlite3
-import requests
+import requests as requestslib
 from order import Order
 
 
@@ -83,7 +81,7 @@ def send_matched_rule(matching_rule, user_id, timestamp):
     callback_url = matching_rule[1]
     # Tell CPEE about matched rule
     headers = {'Content-Type': 'application/json'}
-    response = requests.put(callback_url, json.dumps(
+    response = requestslib.put(callback_url, json.dumps(
         {'user_id': user_id, 'cocktail': matching_rule[0], 'timestamp': timestamp}), headers=headers)
     return response.status_code == 200
 
