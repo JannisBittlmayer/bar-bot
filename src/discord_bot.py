@@ -68,9 +68,10 @@ async def on_message(message):
     if any(keyword in message_content for keyword in keywords) and client.user.mentioned_in(message):
         current_time = int(time.time())
         user_id = message.author.id
+        order_id = f'{user_id}-{message.id}-{current_time}'
         # Send a request to the REST order service
         payload = {'message': message_content,
-                   'user_id': user_id, 'timestamp': current_time}
+                   'user_id': user_id, 'timestamp': current_time, 'order_id': order_id}
         r = requests.post(url=rest_order_url, data=payload)
         await message.channel.send(r.text)
 
