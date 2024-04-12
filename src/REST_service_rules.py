@@ -1,8 +1,10 @@
+import time
 import json
 from bottle import route, run, request, response
 from fuzzywuzzy import fuzz
 import sqlite3
 from rule import Rule
+from REST_service_orders import handle_order
 
 
 # Create tables if not present yet
@@ -19,9 +21,6 @@ def create_tables():
         c.execute(
             '''CREATE TABLE IF NOT EXISTS rejected_matches 
             (order_id TEXT, rule_id TEXT)''')
-
-
-create_tables()
 
 
 # Take new rule
@@ -55,8 +54,11 @@ def add_rule():
             return json.dumps({'rule_id': rule_id, 'order_id': matching_order[3],
                                'user_id': matching_order[1], 'cocktail': matched_cocktail,
                                'timestamp': matching_order[2]})
-        # If no order is found, save the rule and tell CPEE to wait for it to be fulfilled
+        # If no order is found, tell CPEE and try to match orders from the past day
         set_rule_status(db_cursor, rule_id, False)
+        for order in get_past_day_orders(db_cursor):
+            if handle_order(order[0], order[1], order[2], order[3], True) == 'succ':
+                break
         response.set_header('Cpee-Callback', 'true')
         return 'No matching order found, rule saved in rule queue'
 
@@ -141,4 +143,14 @@ def match_already_rejected(db_cursor: sqlite3.Cursor, order_id: str, rule_id: st
     return db_cursor.fetchone() is not None
 
 
-run(host='::1', port=49125)
+# Get orders made in the past day
+
+def get_past_day_orders(db_cursor: sqlite3.Cursor):
+    db_cursor.execute('SELECT * FROM orders WHERE timestamp >= :timestamp ORDER BY timestamp DESC',
+                      {'timestamp': int(time.time()) - 86400})
+    return db_cursor.fetchall()
+
+
+if __name__ == "__main__":
+    create_tables()
+    run(host='::1', port=49125)

@@ -22,9 +22,6 @@ def create_tables():
             (order_id TEXT, rule_id TEXT)''')
 
 
-create_tables()
-
-
 # Take order
 
 @post('/order')
@@ -40,10 +37,16 @@ def order():
         db_cursor = conn.cursor()
         save_order(db_cursor, message, user_id,
                    timestamp, order_id, order_status)
+    return handle_order(message, user_id, timestamp, order_id)
+
+
+def handle_order(message, user_id, timestamp, order_id, call_by_rule_rest=False):
+    with sqlite3.connect('database.db') as conn:
+        db_cursor = conn.cursor()
         # This only loops if a match was found but the callback was dead
         while True:
             # Check if a matching rule can be found
-            matching_rule = find_matching_rule(db_cursor, message)
+            matching_rule = find_matching_rule(db_cursor, message, order_id)
             # If there's a match, continue if the corresponding instance is available
             if matching_rule:
                 set_rule_status(db_cursor, matching_rule[3], True)
@@ -59,9 +62,11 @@ def order():
                     matching_rule, user_id, timestamp, order_id)
                 # From here on, the matched rule stays in the processing state until it is deleted
                 if successfully_sent:
+                    if call_by_rule_rest:
+                        return 'succ'
                     return f'The cocktail "{matching_rule[0]}" is on the menu. You will receive updates on your order via DM!'
                 else:
-                    # Callback returns error -> CPEE task is completed and rule cannot be matched anymoree
+                    # Callback returns error -> CPEE task is completed and rule cannot be matched anymore
                     delete_rule(db_cursor, matching_rule[3])
             # If no matching rule is found, inform user and set order to not processing
             else:
@@ -98,7 +103,7 @@ def reject_match():
 
 # Find matching rule in database
 
-def find_matching_rule(db_cursor: sqlite3.Cursor, message: str):
+def find_matching_rule(db_cursor: sqlite3.Cursor, message: str, order_id: str):
     words = message.split()
     # If possible, return an available rule, as backup return a processing rule
     backup_rules = []
@@ -110,7 +115,9 @@ def find_matching_rule(db_cursor: sqlite3.Cursor, message: str):
         db_cursor.execute('SELECT * FROM rules WHERE strings_to_match LIKE :word',
                           {'word': '%' + word + '%'})
         for rule in db_cursor.fetchall():
-            if not rule[4]:
+            if match_already_rejected(db_cursor, order_id, rule[3]):
+                continue
+            elif not rule[4]:
                 return rule
             elif rule not in backup_rules:
                 backup_rules.append(rule)
@@ -123,7 +130,9 @@ def find_matching_rule(db_cursor: sqlite3.Cursor, message: str):
     for rule in rules:
         # Search for cocktail of the rule in the message
         if fuzz.partial_ratio(message, rule[0]) >= 60:
-            if not rule[4]:
+            if match_already_rejected(db_cursor, order_id, rule[3]):
+                continue
+            elif not rule[4]:
                 return rule
             elif rule not in backup_rules:
                 backup_rules.append(rule)
@@ -204,4 +213,14 @@ def is_instance_busy(db_cursor: sqlite3.Cursor, instance_id: str, exclude_rule_i
     return db_cursor.fetchone() is not None
 
 
-run(host='::1', port=49124)
+# Check if rule - order pair was already rejected
+
+def match_already_rejected(db_cursor: sqlite3.Cursor, order_id: str, rule_id: str):
+    db_cursor.execute('SELECT * FROM rejected_matches WHERE order_id = :order_id AND rule_id = :rule_id',
+                      {'order_id': order_id, 'rule_id': rule_id})
+    return db_cursor.fetchone() is not None
+
+
+if __name__ == "__main__":
+    create_tables()
+    run(host='::1', port=49124)
