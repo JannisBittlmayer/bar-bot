@@ -49,10 +49,11 @@ def order():
                 set_rule_status(db_cursor, matching_rule[3], True)
                 # True if rule was processing before status update or instance is busy because of another rule
                 if matching_rule[4] or is_instance_busy(db_cursor, matching_rule[2], matching_rule[3]):
-                    set_rule_status(db_cursor, matching_rule[3], False)
+                    if not matching_rule[4]:
+                        set_rule_status(db_cursor, matching_rule[3], False)
                     set_order_status(db_cursor, order_id, False)
-                    return f'''The cocktail "{matching_rule[0]}" is on the menu but the robot is busy. 
-                            You will receive updates on your order via DM!'''
+                    return (f'The cocktail "{matching_rule[0]}" is on the menu but the robot is busy. '
+                            'You will receive updates on your order via DM!')
                 # Try telling CPEE about match via callback
                 successfully_sent = send_matched_rule(
                     matching_rule, user_id, timestamp, order_id)
@@ -67,6 +68,8 @@ def order():
                 set_order_status(db_cursor, order_id, False)
                 return 'Your order cannot be yet fulfilled, we saved it and will contact you as soon as it is fulfilled.'
 
+
+# Accept or reject match
 
 @post('/accept_match')
 def accept_match():
@@ -151,7 +154,7 @@ def delete_order(db_cursor, order_id: str):
     deleted_rows_count = db_cursor.rowcount
     # Also delete rejected matches
     db_cursor.execute('DELETE FROM rejected_matches WHERE order_id = :order_id', {
-                      order_id: order_id})
+                      'order_id': order_id})
     db_cursor.connection.commit()
     return deleted_rows_count
 
@@ -181,7 +184,7 @@ def set_rule_status(db_cursor: sqlite3.Cursor, rule_id: str, processing: bool):
 # Save order to database
 
 def save_order(db_cursor, message, user_id, timestamp, order_id, status):
-    db_cursor.execute('INSERT INTO orders VALUES (:message, :user_id, :timestamp :order_id, :status)', {
+    db_cursor.execute('INSERT INTO orders VALUES (:message, :user_id, :timestamp, :order_id, :status)', {
         'message': message, 'user_id': user_id, 'timestamp': timestamp, 'order_id': order_id, 'status': status})
     db_cursor.connection.commit()
 

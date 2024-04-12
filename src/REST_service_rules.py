@@ -38,7 +38,7 @@ def add_rule():
         db_cursor = conn.cursor()
         # Delete old rule and save new one
         delete_rule(db_cursor, rule_id)
-        save_rule(strings_to_match, callback_url,
+        save_rule(db_cursor, strings_to_match, callback_url,
                   instance_id, rule_id, rule_status)
         # Don't look for match if instance is busy (very unlikely)
         if is_instance_busy(db_cursor, instance_id, rule_id):
@@ -47,7 +47,7 @@ def add_rule():
             return 'Instance is busy, rule saved in rule queue'
         # Check, whether rule is already matched by an order
         matching_order, matched_cocktail = find_matching_order(
-            db_cursor, strings_to_match)
+            db_cursor, strings_to_match, rule_id)
         # If order is found, set order to processing and return match
         if matching_order:
             set_order_status(db_cursor, matching_order[3], True)
