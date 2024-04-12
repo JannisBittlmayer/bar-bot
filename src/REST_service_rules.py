@@ -25,8 +25,6 @@ def create_tables():
 
 # Take new rule
 
-# TODO: Change to post endpoint if possible
-@route('/add_rule')
 def add_rule():
     callback_url = request.headers.get('Cpee-Callback')
     instance_id = request.headers.get('Cpee-Instance-Uuid')
@@ -149,8 +147,3 @@ def get_past_day_orders(db_cursor: sqlite3.Cursor):
     db_cursor.execute('SELECT * FROM orders WHERE timestamp >= :timestamp ORDER BY timestamp DESC',
                       {'timestamp': int(time.time()) - 86400})
     return db_cursor.fetchall()
-
-
-if __name__ == "__main__":
-    create_tables()
-    run(host='::1', port=49125)

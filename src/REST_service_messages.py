@@ -8,7 +8,6 @@ with open('src/config.json') as config_file:
     token = config['token']
 
 
-@post('/message')
 def message():
     data = request.forms
     user_id = data['user_id']
@@ -37,6 +36,3 @@ def send_discord_message(user_id, message):
         headers=headers,
         data=json.dumps({'content': message})
     )
-
-
-run(host='::1', port=49126)

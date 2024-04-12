@@ -24,7 +24,6 @@ def create_tables():
 
 # Take order
 
-@post('/order')
 def order():
     data = request.forms
     message = data['message']
@@ -76,7 +75,6 @@ def handle_order(message, user_id, timestamp, order_id, call_by_rule_rest=False)
 
 # Accept or reject match
 
-@post('/accept_match')
 def accept_match():
     data = request.forms
     rule_id = data['rule_id']
@@ -88,7 +86,6 @@ def accept_match():
     return f'Deleted rows (normally 1): {delete_count}'
 
 
-@post('/reject_match')
 def reject_match():
     data = request.forms
     rule_id = data['rule_id']
@@ -219,8 +216,3 @@ def match_already_rejected(db_cursor: sqlite3.Cursor, order_id: str, rule_id: st
     db_cursor.execute('SELECT * FROM rejected_matches WHERE order_id = :order_id AND rule_id = :rule_id',
                       {'order_id': order_id, 'rule_id': rule_id})
     return db_cursor.fetchone() is not None
-
-
-if __name__ == "__main__":
-    create_tables()
-    run(host='::1', port=49124)
