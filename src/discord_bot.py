@@ -16,9 +16,7 @@ with open(config_path) as config_file:
     rest_order_url = config['rest_order_url']
 
 
-# If logging doesn't work, check https://discordpy.readthedocs.io/en/stable/logging.html
-
-discord.utils.setup_logging()
+# To use additional logging, check https://discordpy.readthedocs.io/en/stable/logging.html
 
 
 # Adapted from https://github.com/Rapptz/discord.py/blob/v2.3.2/examples/app_commands/basic.py
@@ -29,7 +27,7 @@ class MyClient(discord.Client):
         # Create a command tree
         self.tree = discord.app_commands.CommandTree(self)
 
-    if guild_id is not "":
+    if guild_id != "":
         # By doing so, we don't have to wait up to an hour until slash commands are shown to the end-user.
         async def setup_hook(self):
             # This copies the global commands over to our guild.
