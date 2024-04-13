@@ -6,22 +6,6 @@ import sqlite3
 from REST_service_orders import handle_order
 
 
-# Create tables if not present yet
-
-def create_tables():
-    with sqlite3.connect('database.db') as conn:
-        c = conn.cursor()
-        c.execute(
-            '''CREATE TABLE IF NOT EXISTS orders 
-            (message TEXT, user_id TEXT, timestamp INTEGER, order_id TEXT, processing BOOLEAN)''')
-        c.execute(
-            '''CREATE TABLE IF NOT EXISTS rules 
-            (strings_to_match TEXT, callback TEXT, instance_id TEXT, rule_id TEXT, processing BOOLEAN)''')
-        c.execute(
-            '''CREATE TABLE IF NOT EXISTS rejected_matches 
-            (order_id TEXT, rule_id TEXT)''')
-
-
 # Take new rule
 
 def add_rule():
