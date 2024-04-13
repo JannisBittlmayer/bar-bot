@@ -1,9 +1,8 @@
 import json
-from bottle import post, run, request
+from bottle import request
 from fuzzywuzzy import fuzz
 import sqlite3
 import requests as requestslib
-from order import Order
 
 
 # Create tables if not present yet

@@ -1,6 +1,6 @@
 import requests
 import json
-from bottle import post, run, request
+from bottle import request
 
 # Load config from config.json
 with open('src/config.json') as config_file:

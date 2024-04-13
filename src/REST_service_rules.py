@@ -1,9 +1,8 @@
 import time
 import json
-from bottle import route, run, request, response
+from bottle import request, response
 from fuzzywuzzy import fuzz
 import sqlite3
-from rule import Rule
 from REST_service_orders import handle_order
 
 
