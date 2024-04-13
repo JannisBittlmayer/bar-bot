@@ -3,7 +3,6 @@
 # Config file containing the bot token
 src/config.json
 database.db
-run.sh
 .vscode
 
 ## Ignore Visual Studio temporary files, build results, and
