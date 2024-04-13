@@ -1,9 +1,13 @@
+import os
 import requests
 import json
 from bottle import request
 
 # Load config from config.json
-with open('src/config.json') as config_file:
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+config_path = os.path.join(script_dir, 'config.json')
+with open(config_path) as config_file:
     config = json.load(config_file)
     token = config['token']
 
@@ -21,7 +25,6 @@ def send_discord_message(user_id, message):
         'Authorization': 'Bot ' + token,
         'Content-Type': 'application/json',
     }
-
     # Create DM
     response = requests.post(
         'https://discord.com/api/v8/users/@me/channels',
@@ -29,7 +32,6 @@ def send_discord_message(user_id, message):
         data=json.dumps({'recipient_id': user_id})
     )
     dm_id = response.json().get('id')
-
     # Send message
     requests.post(
         f'https://discord.com/api/v8/channels/{dm_id}/messages',

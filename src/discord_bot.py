@@ -1,59 +1,70 @@
+import os
 import discord
 import json
-from discord import app_commands
 import requests
 import time
 
+
 # Load config from config.json
-with open('src/config.json') as config_file:
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+config_path = os.path.join(script_dir, 'config.json')
+with open(config_path) as config_file:
     config = json.load(config_file)
     token = config['token']
-    guild_id = config['guild_id']
+    guild_id = config['optional_guild_id']
+    rest_order_url = config['rest_order_url']
+
 
 # If logging doesn't work, check https://discordpy.readthedocs.io/en/stable/logging.html
+
 discord.utils.setup_logging()
 
-# Adapted from https://github.com/Rapptz/discord.py/blob/v2.3.2/examples/app_commands/basic.py
 
+# Adapted from https://github.com/Rapptz/discord.py/blob/v2.3.2/examples/app_commands/basic.py
 
 class MyClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
         super().__init__(intents=intents)
         # Create a command tree
-        self.tree = app_commands.CommandTree(self)
+        self.tree = discord.app_commands.CommandTree(self)
 
-    # By doing so, we don't have to wait up to an hour until slash commands are shown to the end-user.
-    async def setup_hook(self):
-        # This copies the global commands over to our guild.
-        myGuild = discord.Object(id=guild_id)
-        self.tree.copy_global_to(guild=myGuild)
-        await self.tree.sync(guild=myGuild)
+    if guild_id is not "":
+        # By doing so, we don't have to wait up to an hour until slash commands are shown to the end-user.
+        async def setup_hook(self):
+            # This copies the global commands over to our guild.
+            myGuild = discord.Object(id=guild_id)
+            self.tree.copy_global_to(guild=myGuild)
+            await self.tree.sync(guild=myGuild)
 
 
 # Pick necessary discord intents
+
 intents = discord.Intents.default()
 intents.message_content = True
+
+
 # Create client
+
 client = MyClient(intents=intents)
 
-# Log when bot is ready
 
+# Log when bot is ready
 
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
 
-# Basic slash command for testing
 
+# Basic slash command to check if bot is working
 
 @client.tree.command()
 async def hello(interaction: discord.Interaction):
     """Says hello!"""
     await interaction.response.send_message(f'Hi, {interaction.user.mention}')
 
-# Get order message
-rest_order_url = 'https://lehre.bpm.in.tum.de/ports/49124/order'
 
+# Get order message
 
 @client.event
 async def on_message(message):
@@ -83,4 +94,5 @@ async def on_message(message):
 
 
 # Run bot
+
 client.run(token)
