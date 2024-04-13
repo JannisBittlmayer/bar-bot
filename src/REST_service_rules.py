@@ -9,10 +9,11 @@ from REST_service_orders import handle_order
 # Take new rule
 
 def add_rule():
+    data = request.forms
     callback_url = request.headers.get('Cpee-Callback')
     instance_id = request.headers.get('Cpee-Instance-Uuid')
-    strings_to_match = request.query.strings_to_match
-    rule_id = request.query.rule_id
+    strings_to_match = data["strings_to_match"]
+    rule_id = data["rule_id"]
     rule_status = True
     with sqlite3.connect('database.db') as conn:
         db_cursor = conn.cursor()
