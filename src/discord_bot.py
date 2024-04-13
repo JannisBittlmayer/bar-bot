@@ -1,4 +1,3 @@
-from typing import Literal
 import discord
 import json
 from discord import app_commands
@@ -69,11 +68,18 @@ async def on_message(message):
         current_time = int(time.time())
         user_id = message.author.id
         order_id = f'{user_id}-{message.id}-{current_time}'
+        user_roles = [role.id for role in message.author.roles]
+        creation_time = int(message.author.created_at.timestamp())
+        display_name = message.author.display_name
         # Send a request to the REST order service
-        payload = {'message': message_content,
-                   'user_id': user_id, 'timestamp': current_time, 'order_id': order_id}
+        # Data in custom_data is additionally accessible from CPEE instance when it receives the order
+        custom_dict = {'user_roles': user_roles,
+                       'display_name': display_name, 'creation_time': creation_time}
+        custom_json = json.dumps(custom_dict)
+        payload = {'message': message_content, 'user_id': user_id,
+                   'timestamp': current_time, 'order_id': order_id, 'custom_data': custom_json}
         r = requests.post(url=rest_order_url, data=payload)
-        await message.channel.send(r.text)
+        await message.reply(r.text)
 
 
 # Run bot

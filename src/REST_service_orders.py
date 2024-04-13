@@ -12,7 +12,7 @@ def create_tables():
         c = conn.cursor()
         c.execute(
             '''CREATE TABLE IF NOT EXISTS orders 
-            (message TEXT, user_id TEXT, timestamp INTEGER, order_id TEXT, processing BOOLEAN)''')
+            (message TEXT, user_id TEXT, timestamp INTEGER, order_id TEXT, processing BOOLEAN, custom_data TEXT)''')
         c.execute(
             '''CREATE TABLE IF NOT EXISTS rules 
             (strings_to_match TEXT, callback TEXT, instance_id TEXT, rule_id TEXT, processing BOOLEAN)''')
@@ -29,16 +29,17 @@ def order():
     user_id = data['user_id']
     timestamp = int(data['timestamp'])
     order_id = data['order_id']
+    custom_data = data['custom_data']
     # Set order to processing so no one can "snipe" it during processing
     order_status = True
     with sqlite3.connect('database.db') as conn:
         db_cursor = conn.cursor()
         save_order(db_cursor, message, user_id,
-                   timestamp, order_id, order_status)
-    return handle_order(message, user_id, timestamp, order_id)
+                   timestamp, order_id, order_status, custom_data)
+    return handle_order(message, user_id, timestamp, order_id, custom_data)
 
 
-def handle_order(message, user_id, timestamp, order_id, call_by_rule_rest=False):
+def handle_order(message, user_id, timestamp, order_id, custom_data, call_by_rule_rest=False):
     with sqlite3.connect('database.db') as conn:
         db_cursor = conn.cursor()
         # This only loops if a match was found but the callback was dead
@@ -57,7 +58,7 @@ def handle_order(message, user_id, timestamp, order_id, call_by_rule_rest=False)
                             'You will receive updates on your order via DM!')
                 # Try telling CPEE about match via callback
                 successfully_sent = send_matched_rule(
-                    matching_rule, user_id, timestamp, order_id)
+                    matching_rule, user_id, timestamp, order_id, custom_data)
                 # From here on, the matched rule stays in the processing state until it is deleted
                 if successfully_sent:
                     if call_by_rule_rest:
@@ -140,13 +141,15 @@ def find_matching_rule(db_cursor: sqlite3.Cursor, message: str, order_id: str):
 
 # Tell CPEE about matched rule and delete rule from database
 
-def send_matched_rule(matching_rule, user_id, timestamp, order_id):
+def send_matched_rule(matching_rule, user_id, timestamp, order_id, custom_data):
     callback_url = matching_rule[1]
+    custom_data_dict = json.loads(custom_data)
     # Tell CPEE about matched rule
     headers = {'Content-Type': 'application/json'}
     response = requestslib.put(callback_url, json.dumps(
         {'rule_id': matching_rule[3], 'order_id': order_id, 'user_id': user_id,
-         'cocktail': matching_rule[0], 'timestamp': timestamp}), headers=headers)
+         'cocktail': matching_rule[0], 'timestamp': timestamp, 'custom_data': custom_data_dict}),
+        headers=headers)
     return response.status_code == 200
 
 
@@ -188,9 +191,10 @@ def set_rule_status(db_cursor: sqlite3.Cursor, rule_id: str, processing: bool):
 
 # Save order to database
 
-def save_order(db_cursor, message, user_id, timestamp, order_id, status):
-    db_cursor.execute('INSERT INTO orders VALUES (:message, :user_id, :timestamp, :order_id, :status)', {
-        'message': message, 'user_id': user_id, 'timestamp': timestamp, 'order_id': order_id, 'status': status})
+def save_order(db_cursor, message, user_id, timestamp, order_id, status, custom_data):
+    db_cursor.execute('INSERT INTO orders VALUES (:message, :user_id, :timestamp, :order_id, :status, :custom_data)', {
+        'message': message, 'user_id': user_id, 'timestamp': timestamp, 'order_id': order_id, 'status': status,
+        'custom_data': custom_data})
     db_cursor.connection.commit()
 
 
