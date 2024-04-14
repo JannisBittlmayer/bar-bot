@@ -39,7 +39,7 @@ def add_rule():
         # If no order is found, tell CPEE and try to match orders from the past day
         set_rule_status(db_cursor, rule_id, False)
         for order in get_past_day_orders(db_cursor):
-            if handle_order(order[0], order[1], order[2], order[3], True) == 'succ':
+            if handle_order(order[0], order[1], order[2], order[3], order[5], True) == 'succ':
                 break
         response.set_header('Cpee-Callback', 'true')
         return 'No matching order found, rule saved in rule queue'
