@@ -172,8 +172,8 @@ The most useful data elements for this are the ones returned from the `add_rule`
 Just make sure to set the `data.decision` data element to `"accept"` or `"reject"` before the decision gateway.
 
 ### Adding Custom Data to Orders
-Let's say you want to add additional data to the order data. You can do this by adding a new key-value pair to the `custom_data` JSON object in the `add_rule` endpoint.  
-The simplest way to do this is to add a new key-value pair to the `custom_dict` variable in the `on_message` function in the `discord_bot.py` file. This data will then be sent to the CPEE instance with the order and can be used in the process via the `custom_data` data element. 
+Let's say you want to add additional data to the order data. You can do this by adding a new key-value pair to the `custom_data` JSON object when calling the `/order` endpoint.  
+The simplest way to do this is to add a new key-value pair to the `custom_dict` variable in the `on_message` function in the `discord_bot.py` file. This data will then be sent to the CPEE instance with the order and can be used in the process via the `custom_data` data element.
 
 ## Technical Details
 ### database.db
