@@ -275,7 +275,7 @@ During development, several design decisions needed to be made. Here are some of
         2. Allow multiple instances. This would be the most flexible solution but would require a lot of additional logic to handle all possible cases.
     - Decision:  
         Option 2: Allow multiple instances. The system is designed to be able to handle multiple robots. The additional logic required is worth the flexibility of the system.
-- **Handling Busy INstances**
+- **Handling Busy Instances**
     - Problem:  
         Due to the descision above, the system must be able to handle orders that match a rule of a busy instance.
     - Options:
