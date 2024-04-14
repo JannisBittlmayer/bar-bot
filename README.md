@@ -1,4 +1,4 @@
-# Ordering system using CPEE, REST and Discord
+# An ordering system using CPEE, REST and Discord
 
 ## Power to the Process - A modularity-focused ordering system for use with robotic bartenders
 
