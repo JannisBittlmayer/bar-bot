@@ -121,10 +121,15 @@ This is a detailed description of the `barbot_testset.xml` CPEE example process 
 | 13 | <img src="docs/wt13.png" width="200"/> | **Gateway: Loop**<br>We are now in the second parallel branch and can handle a new rule. The procedure from here on is the same as in the first branch (starting at step 3).
 
 ### Demonstration
-Here is a short video demonstrating the system.   
-![CPEE Process Demonstration](docs/demo.mp4)  
-Here is a short video showing the used settings.
-![CPEE Settings Demonstration](docs/demo2.mp4)  
+Here is a short video demonstrating the system (Also stored [here](docs/demo.mp4) in the repo). See below for a written description.
+
+https://github.com/JannisBittlmayer/bar-bot/assets/73840230/e7841418-2219-4a4a-8f10-1498126e1682
+
+Here is a short video showing the used rule settings and accept/reject scripts. (Also stored [here](docs/demo2.mp4) in the repo)
+
+https://github.com/JannisBittlmayer/bar-bot/assets/73840230/e72a4868-4223-4089-adac-a6d733cbe7d7
+
+*Note: The `rule` endpoint is just an alias for the `add_rule` endpoint.*
 
 **In words:**
 - **Setup**
