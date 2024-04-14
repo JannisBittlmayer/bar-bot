@@ -2,7 +2,8 @@
 
 ## Power to the Process - A modularity-focused ordering system for use with robotic bartenders
 
-This project includes a full ordering system that uses the Cloud Process Execution Engine (CPEE) as an connection point to be used with one or more robotic bartenders. On the other side, a Discord bot is used as the user interface for ordering while a REST API connecting the two manages rules, orders and finding matches. The key focus is process-side modularity, as the system is designed to be easily adaptable to different use cases without changing any server-side code.
+This project includes a full ordering system that uses the Cloud Process Execution Engine (CPEE) as an connection point to be used with one or more robotic bartenders. On the other side, a Discord bot is used as the user interface for ordering while a REST API connecting the two manages rules, orders and finding matches. The key focus is process-side modularity, as the system is designed to be easily adaptable to different use cases without changing any server-side code.  
+For a quick demo, check the [Demonstration](#demonstration) section.
 
 # Table of Contents
 1. [Features](#features)
@@ -13,6 +14,8 @@ This project includes a full ordering system that uses the Cloud Process Executi
     2. [Running the system](#running-the-system)
     3. [Making orders](#making-orders)
 5. [CPEE Process Walkthrough](#cpee-process-walkthrough)
+    1. [Process](#process)
+    2. [Demonstration](#demonstration)
 6. [Make it your own: Adapting the System](#make-it-your-own-adapting-the-system)
     1. [Usable Service Tasks](#usable-service-tasks)
     2. [Changing Rules and Match Conditions](#changing-rules-and-match-conditions)
@@ -98,6 +101,7 @@ Note that sysstem can handle messages that contain more than just the order and 
 - `Hey @BarBot bestell mir nen Bracsdi`
 
 ## CPEE Process Walkthrough
+### Process
 This is a detailed description of the `barbot_testset.xml` CPEE example process and how it interacts with the REST services.
 
 | Step | Process part | Description |
@@ -115,6 +119,38 @@ This is a detailed description of the `barbot_testset.xml` CPEE example process 
 | 11 | <img src="docs/wt11.png" width="200"/> | **Service Call: Endpoint `message`**<br> Send update message to user. See step 7.
 | 12 | <img src="docs/wt12.png" width="200"/> | **Gateway: Closing Loop**<br> Close the loop and start again at step 3. In parallel, for the other branch from step 1, continue with step 13.
 | 13 | <img src="docs/wt13.png" width="200"/> | **Gateway: Loop**<br>We are now in the second parallel branch and can handle a new rule. The procedure from here on is the same as in the first branch (starting at step 3).
+
+### Demonstration
+Here is a short video demonstrating the system.   
+![CPEE Process Demonstration](docs/demo.mp4)  
+Here is a short video showing the used settings.
+![CPEE Settings Demonstration](docs/demo2.mp4)  
+
+**In words:**
+- **Setup**
+    - The left process always accepts Cola and Fanta orders in the top rule and always rejects Bacardi orders in the bottom rule.
+    - The right process always accepts Cola and Fanta orders in the top rule and always accepts Bacardi orders in the bottom rule.
+    - Notice that even though they provide the same top rules, the IDs are still different (and need to be!)
+- **Execution**
+    1. The first order is a Cola order.
+        - A matching rule is available from a free instance. The reponse message shows this.
+        - The left process accepts it and sends a direct message to the user.
+        - After the timeout, the left process sends another direct message to the user.
+    2. The second order is a Fanta order. 
+        - A matching rule is available from the right process (since the other one is busy). The reponse message shows this.
+        - The right process accepts it and sends a message to the user.
+    3. The third and fourth order are Baca(r)di orders.
+        - Since at the time of order, both instances are busy, this is reflected in the response messages.
+        - Once the left process is free again, it recjects both orders and sends a message to the user.
+        - Once the right process is free again, it accepts both orders and sends a message to the user.
+        - After the timeout, the right process sends another message to the user.
+- **Resulting Discord DMs**  
+    (Order is mixed due to timing of orders and process execution)
+    - Your Cola/Fanta is being prepared - Sent at the second part of execution steps 1 and 2.
+    - Your Cola/Fanta is ready! - Sent at the third part of execution steps 1 and 2.
+    - Your Bacardi was rejected \[...] - Sent at the second part of execution step 3.
+    - Your Bacardi is being prepared - Sent at the third part of execution step 3.
+    - Your Bacardi is ready! - Sent at the fourth part of execution step 3.
 
 ## Make it your own: Adapting the System
 ### Usable Service Tasks
